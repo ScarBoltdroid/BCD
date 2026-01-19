@@ -1,0 +1,10 @@
+streamlit
+json
+coutryflag
+streamlit_autorefresh
+pandas
+dropbox
+bcrypt
+random
+cloudscraper
+bs4
