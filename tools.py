@@ -173,6 +173,7 @@ def gen_quote():
 def names_list(group, draft):
     riders_names = load_rider_names()
     comp = load_all_riders()
+    riders_names.pop('POGA\u010cAR Tadej', '')
     for r in draft[group]:
         for p in draft[group][r]:
             try:
@@ -269,3 +270,4 @@ def update_results():
             results["results"][race] = rows
     results["date"] = current_date
     save_results(results)
+
