@@ -5,3 +5,4 @@ bcrypt
 cloudscraper
 beautifulsoup4
 streamlit-autorefresh
+countryflag
