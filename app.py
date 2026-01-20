@@ -161,7 +161,7 @@ def main_app():
     if st.session_state.page == "home":
         st.title("HOME")
         st.write(st.session_state.quote)
-        last_race_module()
+        #last_race_module()
     elif st.session_state.page == "draft":
         draft_page()
     elif st.session_state.page == 'team':
@@ -340,3 +340,4 @@ elif st.session_state.glogged_in and st.session_state.logged_in:
     main_app()
 else:
     group_page()
+
