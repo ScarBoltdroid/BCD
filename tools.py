@@ -184,8 +184,7 @@ def names_list(group, draft):
     return riders_names
 
 def check_date():
-    with open("sim.json", "r") as f:
-        sim = json.load(f)
+    sim = dropbox_load("sim")
     date = sim["date"]
     return date
 
@@ -270,4 +269,5 @@ def update_results():
             results["results"][race] = rows
     results["date"] = current_date
     save_results(results)
+
 
