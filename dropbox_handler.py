@@ -32,6 +32,7 @@ dbx = authenticate_dropbox()
 
 # Upload teams.json to Dropbox
 def dropbox_upload(file, json_name):
+    global dbx
     try:
         """Uploads teams.json to Dropbox."""
         file_path = f"/Fantasy/{json_name}.json"
@@ -48,6 +49,7 @@ def dropbox_upload(file, json_name):
 
 # Load teams.json from Dropbox
 def dropbox_load(json_name):
+    global dbx
     try:
         """Retrieves teams.json from Dropbox."""
         file_path = f"/Fantasy/{json_name}.json"
@@ -63,4 +65,5 @@ def dropbox_load(json_name):
         dbx = authenticate_dropbox()
         if dbx:
             dropbox_load(json_name)
+
 
