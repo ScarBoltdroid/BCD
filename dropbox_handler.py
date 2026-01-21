@@ -42,8 +42,8 @@ def dropbox_upload(file, json_name):
     except dropbox.exceptions.AuthError:
         st.warning("Dropbox authentication failed. Attempting token refresh...")
         dbx = authenticate_dropbox()
-            if dbx:
-                dropbox_upload(file, json_name)
+        if dbx:
+            dropbox_upload(file, json_name)
 
 
 # Load teams.json from Dropbox
@@ -61,5 +61,6 @@ def dropbox_load(json_name):
     except dropbox.exceptions.AuthError:
         st.warning("Dropbox authentication failed. Attempting token refresh...")
         dbx = authenticate_dropbox()
-            if dbx:
-                dropbox_load(json_name)
+        if dbx:
+            dropbox_load(json_name)
+
