@@ -1,7 +1,8 @@
 import cloudscraper
 from bs4 import BeautifulSoup
 import pandas as pd
-
+from datetime import datetime
+current_year = 2026
 
 def stage_scraper(short_url):
     url = "https://www.procyclingstats.com/" + short_url
@@ -18,12 +19,12 @@ def stage_scraper(short_url):
             break
     data = []
     headers = [th.get_text(strip=True) for th in table.find_all('th')]
-
+    test_data = []
     for tr in stage_table.find_all('tr')[0:]:  # Skip the header row
         cells = tr.find_all('td')
         if not cells:
             continue
-            
+        
         row_data = []
         for td in cells:
             # Check if this is the ridername cell
@@ -34,18 +35,25 @@ def stage_scraper(short_url):
                 row_data.append(stage_link if stage_link else "")
             else:
                 # For other cells, just get the normal text
-                row_data.append(td.get_text(strip=True))
-        
+                text = td.get_text(strip=True)
+                try:
+                    formatted_date = datetime.strptime(text, "%d/%m").replace(year=current_year)
+                    date = formatted_date.strftime("%Y-%m-%d")
+                    row_data.append(date)
+                except ValueError:
+                    row_data.append(text)
         data.append(row_data)
+
 
     df = pd.DataFrame(data, columns=headers)
     df_filtered = df['Stage']
-    stage_list = []
+    stage_list = {}
     for s in df_filtered:
         if s:
-            stage_list.append(s+"/")
+            stage_list[s+"/"] = df.loc[df['Stage'] == s, 'Date'].item()
 
     return stage_list
+
 
 def info_scraper(short_url):
     url = "https://www.procyclingstats.com/" + short_url
@@ -149,5 +157,6 @@ def gc_scraper(url_short):
 
         df = pd.DataFrame(data, columns=headers)
         df_filtered = df[['Rnk', 'Rider']]
+
 
         return df_filtered
