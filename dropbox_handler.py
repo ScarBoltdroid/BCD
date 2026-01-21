@@ -32,20 +32,34 @@ dbx = authenticate_dropbox()
 
 # Upload teams.json to Dropbox
 def dropbox_upload(file, json_name):
-    """Uploads teams.json to Dropbox."""
-    file_path = f"/Fantasy/{json_name}.json"
-    json_data = json.dumps(file, indent=4)
+    try:
+        """Uploads teams.json to Dropbox."""
+        file_path = f"/Fantasy/{json_name}.json"
+        json_data = json.dumps(file, indent=4)
+    
+        dbx.files_upload(json_data.encode(), file_path, mode=dropbox.files.WriteMode("overwrite"))
 
-    dbx.files_upload(json_data.encode(), file_path, mode=dropbox.files.WriteMode("overwrite"))
+    except dropbox.exceptions.AuthError:
+        st.warning("Dropbox authentication failed. Attempting token refresh...")
+        dbx = authenticate_dropbox()
+            if dbx:
+                dropbox_upload(file, json_name)
+
 
 # Load teams.json from Dropbox
 def dropbox_load(json_name):
-    """Retrieves teams.json from Dropbox."""
-    file_path = f"/Fantasy/{json_name}.json"
-
     try:
-        metadata, res = dbx.files_download(file_path)
-        teams = json.loads(res.content.decode("utf-8"))
-        return teams
-    except dropbox.exceptions.ApiError:
-        return {}  # Return an empty dictionary if file doesn't exist
+        """Retrieves teams.json from Dropbox."""
+        file_path = f"/Fantasy/{json_name}.json"
+    
+        try:
+            metadata, res = dbx.files_download(file_path)
+            teams = json.loads(res.content.decode("utf-8"))
+            return teams
+        except dropbox.exceptions.ApiError:
+            return {}  # Return an empty dictionary if file doesn't exist
+    except dropbox.exceptions.AuthError:
+        st.warning("Dropbox authentication failed. Attempting token refresh...")
+        dbx = authenticate_dropbox()
+            if dbx:
+                dropbox_load(json_name)
