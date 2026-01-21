@@ -3,6 +3,7 @@ import random
 from PCScraper.scrapers import result_scraper, info_scraper, gc_scraper, stage_scraper
 from dropbox_handler import dropbox_upload, dropbox_load
 import random
+from datetime import datetime
 
 def check_draft(group_name, draft_track):
     """
@@ -184,9 +185,7 @@ def names_list(group, draft):
     return riders_names
 
 def check_date():
-    sim = dropbox_load("sim")
-    date = sim["date"]
-    return date
+    return datetime.today().strftime('%Y-%m-%d')
 
 
 def finish_draft(group_name):
@@ -244,6 +243,12 @@ def check_points(rank, race, desg, type='stage'):
 
     if kind == "1":
         return dist['one-day'][level][rank-1]
+    if kind =="2":
+        if type == "gc":
+            return dist['GC'][level][rank-1]
+        elif type == "stage":
+            return dist['stage'][level][rank-1]
+
 
 
 def update_results():
@@ -252,22 +257,108 @@ def update_results():
     current_date = check_date()
     races = load_races()
     for race in races: 
-        if last_update <= races[race][0] <= current_date:
-            local_results = result_scraper(race)
-            info = info_scraper(race)
-            desg = info['Classification']
-            rows = []
-            for index, row in local_results.iterrows():
-                rider_url = row["Rider"]
-                rank = row["Rnk"]
-                try:
-                    if int(rank) < 26:
-                        score = check_points(int(rank), race, desg)
-                        rows.append([rider_url, rank, score])
-                except ValueError:
-                    continue
-            results["results"][race] = rows
+        # If race completly passed
+        if last_update <= races[race]["enddate"] < current_date:
+            desg = races[race]["class"]
+            type, lvl = desg.split('.')
+            if type == "1":
+                local_results = result_scraper(race)
+                rows = []
+                for index, row in local_results.iterrows():
+                    rider_url = row["Rider"]
+                    rank = row["Rnk"]
+                    try:
+                        if int(rank) < 26:
+                            score = check_points(int(rank), race, desg)
+                            rows.append([rider_url, rank, score])
+                    except ValueError:
+                        continue
+                results["results"][race] = rows
+
+            if type == "2":
+                # First GC results
+                local_results = gc_scraper(race)
+                rows = []
+                for index, row in local_results.iterrows():
+                    rider_url = row["Rider"]
+                    rank = row["Rnk"]
+                    try:
+                        if int(rank) < 26:
+                            score = check_points(int(rank), race, desg, type="gc")
+                            rows.append([rider_url, rank, score])
+                    except ValueError:
+                        continue
+                results["results"][race+'gc/'] = rows
+
+                # Now stages
+                for stage in races[race]["stages"]:
+                    local_results = result_scraper(stage)
+                    rows = []
+                    for index, row in local_results.iterrows():
+                        rider_url = row["Rider"]
+                        rank = row["Rnk"]
+                        try:
+                            if int(rank) < 16:
+                                score = check_points(int(rank), race, desg)
+                                rows.append([rider_url, rank, score])
+                        except ValueError:
+                            continue
+                    results["results"][stage] = rows
+
+        # if race is on the same day:
+        if (last_update <= races[race]["startdate"] <= current_date and current_date <= races[race]["enddate"]) or races[race]["enddate"] == current_date:
+            desg = races[race]["class"]
+            type, lvl = desg.split('.')
+            if type == "1":
+                local_results = result_scraper(race)
+                if not local_results is None:
+                    rows = []
+                    for index, row in local_results.iterrows():
+                        rider_url = row["Rider"]
+                        rank = row["Rnk"]
+                        try:
+                            if int(rank) < 26:
+                                score = check_points(int(rank), race, desg)
+                                rows.append([rider_url, rank, score])
+                        except ValueError:
+                            continue
+                    results["results"][race] = rows
+
+            if type == "2":
+                # First GC results
+                local_results = gc_scraper(race)
+                if not local_results is None:
+                    rows = []
+                    for index, row in local_results.iterrows():
+                        rider_url = row["Rider"]
+                        rank = row["Rnk"]
+                        try:
+                            if int(rank) < 26:
+                                score = check_points(int(rank), race, desg, type="gc")
+                                rows.append([rider_url, rank, score])
+                        except ValueError:
+                            continue
+
+                    results["results"][race+'gc/'] = rows
+
+                # Now stages
+                for stage in races[race]["stages"]:
+                    local_results = result_scraper(stage)
+                    if not local_results is None:
+                        rows = []
+                        for index, row in local_results.iterrows():
+                            rider_url = row["Rider"]
+                            rank = row["Rnk"]
+                            try:
+                                if int(rank) < 16:
+                                    score = check_points(int(rank), race, desg)
+                                    rows.append([rider_url, rank, score])
+                            except ValueError:
+                                continue
+                        if rows:
+                            results["results"][stage] = rows
     results["date"] = current_date
     save_results(results)
+
 
 
