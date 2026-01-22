@@ -1,177 +1,119 @@
-import cloudscraper
+import streamlit as st
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
+
+# It is 2026
 current_year = 2026
 
-def stage_scraper(short_url):
-    url = "https://www.procyclingstats.com/" + short_url
-    scraper = cloudscraper.create_scraper(browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    }
-)
-    response = scraper.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+# Create a global session to reuse the browser fingerprint
+session = requests.Session(impersonate="chrome124")
 
-    # 1. Find the div that has the text "Classification:"
-    # Note: PCS often has a space after "Classification: "
+def get_soup(url_short):
+    url = "https://www.procyclingstats.com/" + url_short
+    try:
+        # impersonate="chrome124" makes the request look like a real browser
+        response = session.get(url, timeout=15)
+        
+        if response.status_code != 200:
+            st.error(f"PCS blocked the request (Status {response.status_code}).")
+            return None
+            
+        return BeautifulSoup(response.content, 'html.parser')
+    except Exception as e:
+        st.error(f"Connection error: {e}")
+        return None
+
+def stage_scraper(short_url):
+    soup = get_soup(short_url)
+    if not soup: return {}
+
     stage_tables = soup.find_all('table')
+    stage_table = None
     for table in stage_tables:
         if "Date" in table.get_text():
             stage_table = table
             break
+    
+    if not stage_table: return {}
+
     data = []
-    headers = [th.get_text(strip=True) for th in table.find_all('th')]
-    test_data = []
-    for tr in stage_table.find_all('tr')[0:]:  # Skip the header row
+    headers = [th.get_text(strip=True) for th in stage_table.find_all('th')]
+    
+    for tr in stage_table.find_all('tr'):
         cells = tr.find_all('td')
-        if not cells:
-            continue
+        if not cells: continue
         
         row_data = []
         for td in cells:
-            # Check if this is the ridername cell
             if len(td.find_all('a')) > 0:
-                # Only extract text from the <a> tag
                 stage = td.find('a')
                 stage_link = stage.get('href')
                 row_data.append(stage_link if stage_link else "")
             else:
-                # For other cells, just get the normal text
                 text = td.get_text(strip=True)
                 try:
                     formatted_date = datetime.strptime(text, "%d/%m").replace(year=current_year)
-                    date = formatted_date.strftime("%Y-%m-%d")
-                    row_data.append(date)
+                    row_data.append(formatted_date.strftime("%Y-%m-%d"))
                 except ValueError:
                     row_data.append(text)
         data.append(row_data)
 
-
     df = pd.DataFrame(data, columns=headers)
-    df_filtered = df['Stage']
-    stage_list = {}
-    for s in df_filtered:
-        if s:
-            stage_list[s+"/"] = df.loc[df['Stage'] == s, 'Date'].item()
-
+    stage_list = {f"{s}/": df.loc[df['Stage'] == s, 'Date'].item() for s in df['Stage'] if s}
     return stage_list
 
 def info_scraper(short_url):
-    url = "https://www.procyclingstats.com/" + short_url
-    scraper = cloudscraper.create_scraper(browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    })
-    response = scraper.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = get_soup(short_url)
+    if not soup: return {}
 
-    # 1. Find the div that has the text "Classification:"
-    # Note: PCS often has a space after "Classification: "
     info_list = soup.find('ul', class_='list keyvalueList fs14')
+    if not info_list: return {}
+
     race_info = {}
-
     for li in info_list.find_all('li'):
-        try:
-            title = li.find('div', class_='title').get_text(strip=True).replace(':', '')
-            value = li.find('div', class_='value').get_text(strip=True)
-            race_info[title] = value
-        except AttributeError:
-            continue
-
+        title_div = li.find('div', class_='title')
+        value_div = li.find('div', class_='value')
+        if title_div and value_div:
+            title = title_div.get_text(strip=True).replace(':', '')
+            race_info[title] = value_div.get_text(strip=True)
     return race_info
-    # Output: {'Classification': '1.UWT', 'Date': '02 February 2025', ...}
 
 def result_scraper(url_short):
-    url = 'https://www.procyclingstats.com/' + url_short + 'result'
-    scraper = cloudscraper.create_scraper(browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    })
-    response = scraper.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = get_soup(url_short + "result")
+    if not soup: return pd.DataFrame()
 
     table = soup.find('table', class_='results')
+    if not table: return pd.DataFrame()
 
-    if table:
-        data = []
-        # 1. Get the headers
-        headers = [th.get_text(strip=True) for th in table.find_all('th')]
+    data = []
+    headers = [th.get_text(strip=True) for th in table.find_all('th')]
 
-        # 2. Iterate through rows
-        for tr in table.find_all('tr')[0:]:  # Skip the header row
-            cells = tr.find_all('td')
-            if not cells:
-                continue
-                
-            row_data = []
-            for td in cells:
-                # Check if this is the ridername cell
-                if 'ridername' in td.get('class', []):
-                    # Only extract text from the <a> tag
-                    rider = td.find('a')
-                    rider_link = rider.get('href')
-                    row_data.append(rider_link if rider_link else "")
-                else:
-                    # For other cells, just get the normal text
-                    row_data.append(td.get_text(strip=True))
-            
-            data.append(row_data)
+    for tr in table.find_all('tr'):
+        cells = tr.find_all('td')
+        if not cells: continue
+        row_data = [td.find('a').get('href') if 'ridername' in td.get('class', []) else td.get_text(strip=True) for td in cells]
+        data.append(row_data)
 
-        
-
-
-        df = pd.DataFrame(data, columns=headers)
-        df_filtered = df[['Rnk', 'Rider']]
-
-        return df_filtered
-    
+    df = pd.DataFrame(data, columns=headers)
+    return df[['Rnk', 'Rider']] if 'Rider' in df.columns else df
 
 def gc_scraper(url_short):
-    url = 'https://www.procyclingstats.com/' + url_short + 'gc/result'
-    scraper = cloudscraper.create_scraper(browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    })
-    response = scraper.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = get_soup(url_short + "gc/result")
+    if not soup: return pd.DataFrame()
 
     table = soup.find('table', class_='hide_td14')
+    if not table: return pd.DataFrame()
 
-    if table:
-        data = []
-        # 1. Get the headers
-        headers = [th.get_text(strip=True) for th in table.find_all('th')]
+    data = []
+    headers = [th.get_text(strip=True) for th in table.find_all('th')]
 
-        # 2. Iterate through rows
-        for tr in table.find_all('tr')[0:]:  # Skip the header row
-            cells = tr.find_all('td')
-            if not cells:
-                continue
-                
-            row_data = []
-            for td in cells:
-                # Check if this is the ridername cell
-                if 'ridername' in td.get('class', []):
-                    # Only extract text from the <a> tag
-                    rider = td.find('a')
-                    rider_link = rider.get('href')
-                    row_data.append(rider_link if rider_link else "")
-                else:
-                    # For other cells, just get the normal text
-                    row_data.append(td.get_text(strip=True))
-            
-            data.append(row_data)
+    for tr in table.find_all('tr'):
+        cells = tr.find_all('td')
+        if not cells: continue
+        row_data = [td.find('a').get('href') if 'ridername' in td.get('class', []) else td.get_text(strip=True) for td in cells]
+        data.append(row_data)
 
-        
-
-
-        df = pd.DataFrame(data, columns=headers)
-        df_filtered = df[['Rnk', 'Rider']]
-
-        return df_filtered
+    df = pd.DataFrame(data, columns=headers)
+    return df[['Rnk', 'Rider']] if 'Rider' in df.columns else df
