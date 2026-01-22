@@ -306,7 +306,7 @@ def update_results():
                     results["results"][stage] = rows
 
         # if race is on the same day:
-        if (last_update <= races[race]["startdate"] <= current_date and current_date <= races[race]["enddate"]) or races[race]["enddate"] == current_date:
+        if (races[race]["startdate"] <= current_date and current_date <= races[race]["enddate"]) or races[race]["enddate"] == current_date:
             desg = races[race]["class"]
             type, lvl = desg.split('.')
             if type == "1":
@@ -359,6 +359,7 @@ def update_results():
                             results["results"][stage] = rows
     results["date"] = current_date
     save_results(results)
+
 
 
 
