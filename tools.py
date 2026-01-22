@@ -256,7 +256,6 @@ def update_results():
     results = load_results()
     last_update = results["date"]
     current_date = check_date()
-    st.write(current_date)
     races = load_races()
     for race in races: 
         # If race completly passed
@@ -363,6 +362,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
