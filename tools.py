@@ -4,6 +4,7 @@ from PCScraper.scrapers import result_scraper, info_scraper, gc_scraper, stage_s
 from dropbox_handler import dropbox_upload, dropbox_load
 import random
 from datetime import datetime
+import streamlit as st
 
 def check_draft(group_name, draft_track):
     """
@@ -255,6 +256,7 @@ def update_results():
     results = load_results()
     last_update = results["date"]
     current_date = check_date()
+    st.write(current_date)
     races = load_races()
     for race in races: 
         # If race completly passed
@@ -359,6 +361,7 @@ def update_results():
                             results["results"][stage] = rows
     results["date"] = current_date
     save_results(results)
+
 
 
 
