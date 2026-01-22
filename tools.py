@@ -350,6 +350,7 @@ def update_results():
                 # Now stages
                 for stage in races[race]["stages"]:
                     local_results = result_scraper(stage)
+                    st.write(local_results)
                     if not local_results is None:
                         st.write(local_results)
                         rows = []
@@ -367,6 +368,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
