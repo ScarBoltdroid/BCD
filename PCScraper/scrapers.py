@@ -6,7 +6,12 @@ current_year = 2026
 
 def stage_scraper(short_url):
     url = "https://www.procyclingstats.com/" + short_url
-    scraper = cloudscraper.create_scraper()
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    }
+)
     response = scraper.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -54,10 +59,13 @@ def stage_scraper(short_url):
 
     return stage_list
 
-
 def info_scraper(short_url):
     url = "https://www.procyclingstats.com/" + short_url
-    scraper = cloudscraper.create_scraper()
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    })
     response = scraper.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -79,7 +87,11 @@ def info_scraper(short_url):
 
 def result_scraper(url_short):
     url = 'https://www.procyclingstats.com/' + url_short + 'result'
-    scraper = cloudscraper.create_scraper()
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    })
     response = scraper.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -121,7 +133,11 @@ def result_scraper(url_short):
 
 def gc_scraper(url_short):
     url = 'https://www.procyclingstats.com/' + url_short + 'gc/result'
-    scraper = cloudscraper.create_scraper()
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    })
     response = scraper.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -157,6 +173,5 @@ def gc_scraper(url_short):
 
         df = pd.DataFrame(data, columns=headers)
         df_filtered = df[['Rnk', 'Rider']]
-
 
         return df_filtered
