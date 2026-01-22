@@ -359,8 +359,10 @@ def update_results():
                                 continue
                         if rows:
                             results["results"][stage] = rows
+            st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
