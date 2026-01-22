@@ -8,3 +8,4 @@ streamlit-autorefresh
 countryflag
 lxml
 js2py
+curl_cffi
