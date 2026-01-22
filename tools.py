@@ -347,6 +347,7 @@ def update_results():
                 for stage in races[race]["stages"]:
                     local_results = result_scraper(stage)
                     if not local_results is None:
+                        st.write(local_results)
                         rows = []
                         for index, row in local_results.iterrows():
                             rider_url = row["Rider"]
@@ -362,6 +363,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
