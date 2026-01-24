@@ -3,7 +3,7 @@ import random
 from PCScraper.scrapers import result_scraper, info_scraper, gc_scraper, stage_scraper
 from dropbox_handler import dropbox_upload, dropbox_load
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 import streamlit as st
 
 def check_draft(group_name, draft_track):
@@ -455,6 +455,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
