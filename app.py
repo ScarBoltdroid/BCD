@@ -162,7 +162,7 @@ def main_app():
     if st.session_state.page == "home":
         st.title("HOME")
         st.write(st.session_state.quote)
-        #last_race_module()
+        last_race_module()
     elif st.session_state.page == "draft":
         draft_page()
     elif st.session_state.page == 'team':
@@ -271,19 +271,17 @@ def rider_page():
 
 
 def last_race_module():
-    current_date = tools.check_date()
-    last_race = ''
-    last_date = '1970-01-01'
-    for race in races:
-        r_date = races[race][0]
-        if r_date <= current_date and r_date > last_date:
-            last_date = r_date
-            last_race = race
-    
-    st.write(f'Top 25 from {last_race}')
-    rows, columns = tools.result_table(last_race)
-    table = pd.DataFrame(rows, columns=columns).set_index("Rider")
-    st.table(table)
+    data = tools.latest_results()
+    st.write("**Results from today**")
+    for race in data['today']:
+        st.write(f'Top 25 from {race}')
+        table = pd.DataFrame(data['today'][race]).set_index("Place")
+        st.table(table)
+    st.write("**Results from yesterday**")
+    for race in data['yesterday']:
+        st.write(f'Top 25 from {race}')
+        table = pd.DataFrame(data['yesterday'][race]).set_index("Place")
+        st.table(table)
 
 
 
@@ -349,5 +347,6 @@ elif st.session_state.glogged_in and st.session_state.logged_in:
     main_app()
 else:
     group_page()
+
 
 
