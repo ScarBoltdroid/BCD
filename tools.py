@@ -84,6 +84,60 @@ def draft_table_f(groupname, draft_track):
 
     return index, data
 
+def latest_results():
+    data = {'today': {}, 'yesterday': {}}
+    rider_dict = load_all_riders()
+    results = load_results()
+    current_date = check_date()
+    races = load_races()
+    yesterdate = yesterday(current_date)
+    for race in races:
+        kind, lvl = races[race]['class'].split('.')
+        if kind == '1':
+            if races[race]['startdate'] == current_date:
+                if results['results'][race]:
+                    riders = []
+                    ranks = []
+                    scores = []
+                    for result in results['results'][race]:
+                        riders.append(rider_dict[result[0]][0])
+                        ranks.append(result[1])
+                        scores.append(result[2])
+                    data['today'][race] = {"Place": ranks, "Rider": riders, "Points": scores}
+            if races[race]['startdate'] == yesterdate:
+                if results['results'][race]:
+                    riders = []
+                    ranks = []
+                    scores = []
+                    for result in results['results'][race]:
+                        riders.append(rider_dict[result[0]][0])
+                        ranks.append(result[1])
+                        scores.append(result[2])
+                    data['yesterday'][race] = {"Place": ranks, "Rider": riders, "Points": scores}
+        if kind == '2':
+            for stage in races[race]['stages']:
+                if races[race]['stages'][stage] == current_date:
+                    if results['results'][stage]:
+                        riders = []
+                        ranks = []
+                        scores = []
+                        for result in results['results'][stage]:
+                            riders.append(rider_dict[result[0]][0])
+                            ranks.append(result[1])
+                            scores.append(result[2])
+                        data['today'][stage] = {"Place": ranks, "Rider": riders, "Points": scores}
+                if races[race]['stages'][stage] == yesterdate:
+                    if results['results'][stage]:
+                        riders = []
+                        ranks = []
+                        scores = []
+                        for result in results['results'][stage]:
+                            riders.append(rider_dict[result[0]][0])
+                            ranks.append(result[1])
+                            scores.append(result[2])
+                        data['yesterday'][stage] = {"Place": ranks, "Rider": riders, "Points": scores}
+    return data
+
 def team_table(groupname, uname, teams):
     riders_dict = load_all_riders()
     rider_names = []
@@ -395,6 +449,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
