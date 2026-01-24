@@ -206,6 +206,33 @@ def finish_draft(group_name):
 
     dropbox_upload(teams, "teams")
 
+def rider_table():
+    riders_dict = load_all_riders()
+    rider_names = []
+    scores = []
+    results = load_results()
+    
+    for rlink in riders_dict:
+        rname = riders_dict[rlink][0]
+        score = 0
+        for race in results['results']:
+            for rider in results['results'][race]:
+                if rider[0] == rlink:
+                    score = score + int(rider[2])
+        if not score == 0:
+            scores.append(score)
+            rider_names.append(rname)
+             # Logic for scores goes here
+
+    
+    # Return a dictionary where keys are the columns
+    data = {
+        'Riders': rider_names,
+        'Pnts': scores
+    }
+    
+    return data
+
 
 def result_table(race):
     results = result_scraper(race)
@@ -368,6 +395,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
