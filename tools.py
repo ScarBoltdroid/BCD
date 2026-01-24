@@ -84,6 +84,12 @@ def draft_table_f(groupname, draft_track):
 
     return index, data
 
+def yesterday(date_str):
+    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+    prev_day = date_obj - timedelta(days=1)
+    return prev_day.strftime("%Y-%m-%d")
+
+
 def latest_results():
     data = {'today': {}, 'yesterday': {}}
     rider_dict = load_all_riders()
@@ -449,6 +455,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
