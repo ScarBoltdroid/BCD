@@ -140,6 +140,7 @@ def main_app():
     st.sidebar.button("**Home**", type="tertiary", on_click=home)
     st.sidebar.button("**Ranking**", type="tertiary", on_click=ranking)
     st.sidebar.button("**My Team**", type="tertiary", on_click=team)
+    st.sidebar.button("**Rider Ranking**", type="tertiary", on_click=riderranking)
     st.sidebar.button("**Draft**", type="tertiary", on_click=draft)
     st.sidebar.button("**Log out**", type="tertiary", on_click=logout)
     
@@ -168,6 +169,8 @@ def main_app():
         team_page()
     elif st.session_state.page == 'ranking':
         ranking_page()
+    elif st.session_state.page == 'rider':
+        rider_page()
 
 def draft_page():
 
@@ -235,7 +238,7 @@ def draft_page():
 
 
 def team_page():
-    update_results()
+    #update_results()
     draft_track = dropbox_load("draft")
     r, p, player, status = tools.check_draft(st.session_state.group, draft_track)
     if status == 'ongoing':
@@ -247,7 +250,7 @@ def team_page():
         st.table(table)
 
 def ranking_page():
-    update_results()
+    #update_results()
     teams = load_teams()
     group = {'Team': [],'Points': []}
     for team in teams[st.session_state.group]:
@@ -259,6 +262,10 @@ def ranking_page():
     table = pd.DataFrame(group).set_index('Team').sort_values(by='Points', ascending=False)
     st.table(table)
 
+def rider_page():
+    data = tools.rider_table()
+    tbl = pd.DataFrame(data).set_index('Riders').sort_values(by='Pnts', ascending=False)
+    st.table(tbl)
 
 
 
@@ -300,6 +307,8 @@ def team():
     st.session_state.page = "team"
 def ranking():
     st.session_state.page = "ranking"
+def riderranking():
+    st.session_state.page = "rider"
 
 def load_all_riders():
     return dropbox_load("comp_riders")
@@ -340,4 +349,5 @@ elif st.session_state.glogged_in and st.session_state.logged_in:
     main_app()
 else:
     group_page()
+
 
