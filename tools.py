@@ -106,7 +106,11 @@ def latest_results():
                     ranks = []
                     scores = []
                     for result in results['results'][race]:
-                        riders.append(rider_dict[result[0]][0])
+                        try:
+                            rider = rider_dict[result[0]][0]
+                        except KeyError:
+                            rider = result[0]
+                        riders.append(rider)
                         ranks.append(result[1])
                         scores.append(result[2])
                     data['today'][race] = {"Place": ranks, "Rider": riders, "Points": scores}
@@ -116,7 +120,11 @@ def latest_results():
                     ranks = []
                     scores = []
                     for result in results['results'][race]:
-                        riders.append(rider_dict[result[0]][0])
+                        try:
+                            rider = rider_dict[result[0]][0]
+                        except KeyError:
+                            rider = result[0]
+                        riders.append(rider)
                         ranks.append(result[1])
                         scores.append(result[2])
                     data['yesterday'][race] = {"Place": ranks, "Rider": riders, "Points": scores}
@@ -128,7 +136,11 @@ def latest_results():
                         ranks = []
                         scores = []
                         for result in results['results'][stage]:
-                            riders.append(rider_dict[result[0]][0])
+                            try:
+                                rider = rider_dict[result[0]][0]
+                            except KeyError:
+                                rider = result[0]
+                            riders.append(rider)
                             ranks.append(result[1])
                             scores.append(result[2])
                         data['today'][stage] = {"Place": ranks, "Rider": riders, "Points": scores}
@@ -138,10 +150,45 @@ def latest_results():
                         ranks = []
                         scores = []
                         for result in results['results'][stage]:
-                            riders.append(rider_dict[result[0]][0])
+                            try:
+                                rider = rider_dict[result[0]][0]
+                            except KeyError:
+                                rider = result[0]
+                            riders.append(rider)
                             ranks.append(result[1])
                             scores.append(result[2])
                         data['yesterday'][stage] = {"Place": ranks, "Rider": riders, "Points": scores}
+            if races[race]['enddate'] == current_date:
+                gc = race + 'gc/'
+                if results['results'][gc]:
+                    riders = []
+                    ranks = []
+                    scores = []
+                    for result in results['results'][gc]:
+                        try:
+                            rider = rider_dict[result[0]][0]
+                        except KeyError:
+                            rider = result[0]
+                        riders.append(rider)
+                        ranks.append(result[1])
+                        scores.append(result[2])
+                    data['today'][gc] = {"Place": ranks, "Rider": riders, "Points": scores}
+            if races[race]['enddate'] == yesterdate:
+                gc = race + 'gc/'
+                if results['results'][gc]:
+                    riders = []
+                    ranks = []
+                    scores = []
+                    for result in results['results'][gc]:
+                        try:
+                            rider = rider_dict[result[0]][0]
+                        except KeyError:
+                            rider = result[0]
+                        riders.append(rider)
+                        ranks.append(result[1])
+                        scores.append(result[2])
+                    data['yesterday'][gc] = {"Place": ranks, "Rider": riders, "Points": scores}
+                        
     return data
 
 def team_table(groupname, uname, teams):
@@ -455,6 +502,7 @@ def update_results():
             st.write(results)
     results["date"] = current_date
     save_results(results)
+
 
 
 
